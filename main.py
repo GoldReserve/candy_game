@@ -61,9 +61,7 @@ def play(update, _):
 
     message = turn()
     update.message.reply_text(text=f'{message}')
-    update.message.reply_text(text=f'Нажмите /ok чтобы продолжить' if message ==
-                                                                      'Жеребьевка проведена, '
-                                                                      'я выбираю первым...' else 'Ну что ж, начнем-с')
+    update.message.reply_text(text='Нажмите /ok чтобы продолжить' if message == 'Жеребьевка проведена, я выбираю первым...' else f'Выбирайте сколько возьмете конфет. Напишите число от 1 до 28')
     return GAME_CYCLE
 
 
@@ -74,9 +72,13 @@ def game_cycle1(update, _):
         global candy, flag
         # print(update.message.text)
         # print(candy)
+        message1 = 'Решил взять поменьше? Понимаю...'
+        message2 = 'Решил взять средне? Хороший выбор...'
+        message3 = 'Решил взять по максимуму? Интересно..'
         candy -= int(update.message.text)
         take_candy = randint(1, 28)
-        update.message.reply_text(text=f'Выбирайте сколько возьмете конфет. Напишите число от 1 до 28')
+        update.message.reply_text(text=f'Значит {update.message.text} конфет? {message1 if candy < 15 else message3}')
+        update.message.reply_text(text=f'Нажмите /ok чтобы продолжить')
         flag = 0
         return GAME_CYCLE
 
@@ -85,7 +87,9 @@ def game_cycle1(update, _):
         take_candy = randint(1, 28)
         candy -= take_candy
         update.message.reply_text(text=f'Я беру {take_candy} конфет. Конфет осталось {candy}')
-        update.message.reply_text(text=f'Теперь твоя очередь, напиши мне сколько конфет ты возьмешь...')
+        # update.message.reply_text(text=f'Теперь твоя очередь, напиши мне сколько конфет ты возьмешь...')
+        update.message.reply_text(text=f'Выбирайте сколько возьмете конфет. Напишите число от 1 до 28')
+
         flag = 1
         return GAME_CYCLE
 
@@ -117,7 +121,7 @@ def result(update, context):
     else:
         update.message.reply_text(
             text=f'К сожалению, вы проиграли, может повезет в следующий раз?')
-        ConversationHandler.END
+    ConversationHandler.END
 
 
 def help(update, context):
