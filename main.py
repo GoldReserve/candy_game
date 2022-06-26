@@ -9,7 +9,7 @@ import token_XO
 from time import sleep
 
 GAME_CYCLE, PLAY, RESULT = range(3)
-flag = 1
+flag = 1# кто ходит
 candy = 2021
 TOKEN = token_XO.TOKEN
 updater = Updater(token=token_XO.TOKEN)
@@ -22,71 +22,79 @@ def start(update, _):
     # Создаем простую клавиатуру для ответа
 
     update.message.reply_text(
-                             text=f"Привет, <b>{update.message.from_user.first_name}</b> \U0001F609, предлагаю "
-                                  f"тебе сыграть в игру.\n"
-                                  "\nПравила очень просты: на столе лежит <b>2021 конфета</b>.\n"
-                                  "Играем ты да я, делая ход друг после друга.\n"
-                                  "Первый ход определяется жеребьевкой. \n"
-                                  "<i>За один ход</i> можно забрать <i>не более</i> чем <b>28 конфет</b>.\n"
-                                  "Все конфеты оппонента <s>а также диатез</s> достаются \nсделавшему"
-                                  " последний ход.\n "
-                                  "\nПопробуй обыграй меня \U0001F608"
-                                  "\n/play | /exit", parse_mode='html')
+        text=f"Привет, <b>{update.message.from_user.first_name}</b> \U0001F609, предлагаю "
+             f"тебе сыграть в игру.\n"
+             "\nПравила очень просты: на столе лежит <b>2021 конфета</b>.\n"
+             "Играем ты да я, делая ход друг после друга.\n"
+             "Первый ход определяется жеребьевкой. \n"
+             "<i>За один ход</i> можно забрать <i>не более</i> чем <b>28 конфет</b>.\n"
+             "Все конфеты оппонента <s>а также диатез</s> достаются \nсделавшему"
+             " последний ход.\n "
+             "\nПопробуй обыграй меня \U0001F608"
+             "\n/play | /exit | /help", parse_mode='html')
     return PLAY
 
 
 def exit_func(update, _):
     update.message.reply_text(
-                             text=f"<b>{update.message.from_user.first_name}</b>, уже уходишь? "
-                                  f"Тебе не понравилась игра\U0001F97A? В любом случае ты всегда можешь вернуться"
-                                  f"и попробовать сыграть еще. \nДо свидания \U0001F64B \U0001F64B\u200D\u2642\uFE0F "
-                                  f"", parse_mode='html')
+        text=f"<b>{update.message.from_user.first_name}</b>, уже уходишь? "
+             f"Тебе не понравилась игра\U0001F97A? В любом случае ты всегда можешь вернуться"
+             f"и попробовать сыграть еще. \nДо свидания \U0001F64B \U0001F64B\u200D\u2642\uFE0F "
+             f"", parse_mode='html')
     return ConversationHandler.END
 
 
 def play(update, _):
     update.message.reply_animation(
-                               animation='https://media.giphy.com/media/ckHAdLU2OmY7knUClD/giphy.gif')
+        animation='https://media.giphy.com/media/ckHAdLU2OmY7knUClD/giphy.gif')
 
     def turn():
+        global flag
         whos_turn = randint(1, 6)
         if whos_turn % 2 == 0:
             message = 'Жеребьевка проведена, вы выбираете первым...'
+            flag = 1
         else:
             message = 'Жеребьевка проведена, я выбираю первым...'
+            flag = 0
         return message
 
     message = turn()
     update.message.reply_text(text=f'{message}')
-    update.message.reply_text(text=f'Нажмите /ok чтобы продолжить')
+    update.message.reply_text(text=f'Нажмите /ok чтобы продолжить' if message ==
+                                                                      'Жеребьевка проведена, '
+                                                                      'я выбираю первым...' else 'Ну что ж, начнем-с')
     return GAME_CYCLE
 
 
 def game_cycle1(update, _):
     global flag, candy
 
-    def player_start(update, _):
+    def player_start():
         global candy, flag
-        print(update.message.text)
+        # print(update.message.text)
+        # print(candy)
         candy -= int(update.message.text)
         take_candy = randint(1, 28)
         update.message.reply_text(text=f'Выбирайте сколько возьмете конфет. Напишите число от 1 до 28')
-        flag = 1
+        flag = 0
         return GAME_CYCLE
 
-    def bot_start(update, _):
+    def bot_start():
         global candy, flag
         take_candy = randint(1, 28)
         candy -= take_candy
         update.message.reply_text(text=f'Я беру {take_candy} конфет. Конфет осталось {candy}')
-        flag = 0
+        update.message.reply_text(text=f'Теперь твоя очередь, напиши мне сколько конфет ты возьмешь...')
+        flag = 1
         return GAME_CYCLE
 
-    if flag == 1:
-        bot_start
+    if flag == 0:
+        bot_start()
     else:
-        player_start
+        player_start()
     return RESULT if candy < 1 else GAME_CYCLE
+
 
 # def game_cycle(update, _):
 #     # определяем пользователя
@@ -103,12 +111,12 @@ def game_cycle1(update, _):
 
 def result(update, context):
     global flag
-    if flag == 1:
+    if flag == 0:
         update.message.reply_text(
-                                 text=f'Поздравляю вас с победой!')
+            text=f'Поздравляю вас с победой!')
     else:
         update.message.reply_text(
-                                 text=f'К сожалению, вы проиграли, может повезет в следующий раз?')
+            text=f'К сожалению, вы проиграли, может повезет в следующий раз?')
         ConversationHandler.END
 
 
@@ -126,7 +134,7 @@ def help(update, context):
                                   "чтобы забрать последние конфеты и тогда победа \U0001F973 будет за тобой!"
                                   "\nУдачи!\u263A\uFE0F \n\n"
                                   "/start | /play | /exit |", parse_mode='html')
-
+    return PLAY
 
 # функция обработки не распознных команд
 def unknown(update, context):
@@ -156,8 +164,9 @@ conv_handler = ConversationHandler(  # здесь строится логика 
     entry_points=[CommandHandler('start', start)],
     # этапы разговора, каждый со своим списком обработчиков сообщений
     states={
-        PLAY: [CommandHandler('play', play), CommandHandler('exit', exit_func)],
-        GAME_CYCLE: [MessageHandler(Filters.regex('ok'), game_cycle1)],
+        PLAY: [CommandHandler('play', play), CommandHandler('exit', exit_func), CommandHandler('help', help),
+               CommandHandler('start', start)],
+        GAME_CYCLE: [MessageHandler(Filters.text, game_cycle1)],
         # if candy > 0 else result
         RESULT: [MessageHandler(Filters.text & ~Filters.command, result)],
     },
