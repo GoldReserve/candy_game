@@ -118,9 +118,14 @@ def result(update, context):
     if flag == 0:
         update.message.reply_text(
             text=f'Поздравляю вас с победой!')
+        update.message.reply_animation(
+            animation='https://media0.giphy.com/media/BgDhQlomMxRPq/giphy.gif?cid=ecf05e47k6vvsufku78qr4otj2kjyzs9t3l3g8zz5w2zu1vw&rid=giphy.gif&ct=g')
     else:
         update.message.reply_text(
             text=f'К сожалению, вы проиграли, может повезет в следующий раз?')
+        update.message.reply_animation(
+            animation='https://media4.giphy.com/media/RHEGP4TpkhrQTFCZE4/giphy.gif?cid=ecf05e47j1h7ru1st6wzu09ooj2f7f442zt1elrsmcfipel6&rid=giphy.gif&ct=g')
+
     ConversationHandler.END
 
 
