@@ -1,28 +1,21 @@
-import time
-
-from telegram import InlineQueryResultArticle, InputTextMessageContent, Update, InlineKeyboardButton, \
-    InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from random import randint
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, ConversationHandler
-from telegram.ext import MessageHandler, Filters, InlineQueryHandler
+from telegram.ext import MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, ConversationHandler
 import token_XO
-from time import sleep
+
 
 GAME_CYCLE, PLAY, RESULT = range(3)
-flag = 1# кто ходит
+# Чья очередь ходить
+flag = 1
 candy = 2021
 TOKEN = token_XO.TOKEN
 updater = Updater(token=token_XO.TOKEN)
 dispatcher = updater.dispatcher
 
 
-# функция обработки команды '/start' Стандартная функция которая шла в изначальном файле
 def start(update, _):
     global candy
     candy = 2021
-    update.message.from_user.first_name
-    # Создаем простую клавиатуру для ответа
-
     update.message.reply_text(
         text=f"Привет, <b>{update.message.from_user.first_name}</b> \U0001F609, предлагаю "
              f"тебе сыграть в игру.\n"
@@ -60,10 +53,11 @@ def play(update, _):
             message = 'Жеребьевка проведена, я выбираю первым...'
             flag = 0
         return message
-
     message = turn()
     update.message.reply_text(text=f'{message}')
-    update.message.reply_text(text='Нажмите /ok чтобы продолжить' if message == 'Жеребьевка проведена, я выбираю первым...' else f'Выбирайте сколько возьмете конфет. Напишите число от 1 до 28')
+    update.message.reply_text(
+        text='Нажмите /ok чтобы продолжить' if message == 'Жеребьевка проведена, я выбираю первым...'
+        else f'Выбирайте сколько возьмете конфет. Напишите число от 1 до 28')
     return GAME_CYCLE
 
 
@@ -72,13 +66,11 @@ def game_cycle1(update, _):
 
     def player_start():
         global candy, flag
-        # print(update.message.text)
-        # print(candy)
+        # Сделал опции при ответе, но хорошо бы докрутить
         message1 = 'Решил взять поменьше? Понимаю...'
-        message2 = 'Решил взять средне? Хороший выбор...'
+        # message2 = 'Решил взять средне? Хороший выбор...'
         message3 = 'Решил взять побольше? Интересно..'
         candy -= int(update.message.text)
-        take_candy = randint(1, 28)
         update.message.reply_text(text=f'Значит {update.message.text} ? {message1 if candy < 15 else message3}')
         update.message.reply_text(text=f'Нажмите /ok чтобы продолжить')
         flag = 0
@@ -92,7 +84,6 @@ def game_cycle1(update, _):
             take_candy = candy - 1
         candy -= take_candy
         update.message.reply_text(text=f'Я беру {take_candy} конфет. Конфет осталось {candy}')
-        # update.message.reply_text(text=f'Теперь твоя очередь, напиши мне сколько конфет ты возьмешь...')
         update.message.reply_text(text=f'Выбирайте сколько возьмете конфет. Напишите число от 1 до 28')
 
         flag = 1
@@ -105,33 +96,22 @@ def game_cycle1(update, _):
     return RESULT if candy < 1 else GAME_CYCLE
 
 
-# def game_cycle(update, _):
-#     # определяем пользователя
-#     user = update.message.from_user
-#     # Пишем в журнал пол пользователя
-#     # Следующее сообщение с удалением клавиатуры `ReplyKeyboardRemove`
-#     update.message.reply_text(
-#         'Хорошо. Пришли мне свою фотографию, чтоб я знал как ты '
-#         'выглядишь, или отправь /skip, если стесняешься.',
-#         reply_markup=ReplyKeyboardRemove(),
-#     )
-#     # переходим к этапу `PHOTO`
-#     return RESULT
-
-def result(update, context):
+def result(update, _):
     global flag
     if flag == 0:
         update.message.reply_text(
             text=f'Поздравляю вас с победой!')
         update.message.reply_animation(
-            animation='https://media0.giphy.com/media/BgDhQlomMxRPq/giphy.gif?cid=ecf05e47k6vvsufku78qr4otj2kjyzs9t3l3g8zz5w2zu1vw&rid=giphy.gif&ct=g')
+            animation='https://media0.giphy.com/media/BgDhQlomMxRPq/giphy.gif?cid=ecf05e'
+                      '47k6vvsufku78qr4otj2kjyzs9t3l3g8zz5w2zu1vw&rid=giphy.gif&ct=g')
     else:
         update.message.reply_text(
             text=f'К сожалению, вы проиграли, может повезет в следующий раз?')
         update.message.reply_animation(
-            animation='https://media4.giphy.com/media/RHEGP4TpkhrQTFCZE4/giphy.gif?cid=ecf05e47j1h7ru1st6wzu09ooj2f7f442zt1elrsmcfipel6&rid=giphy.gif&ct=g')
+            animation='https://media4.giphy.com/media/RHEGP4TpkhrQTFCZE4/giphy.gif?'
+                      'cid=ecf05e47j1h7ru1st6wzu09ooj2f7f442zt1elrsmcfipel6&rid=giphy.gif&ct=g')
 
-    ConversationHandler.END
+    return ConversationHandler.END
 
 
 def help(update, context):
@@ -150,7 +130,8 @@ def help(update, context):
                                   "/start | /play | /exit |", parse_mode='html')
     return PLAY
 
-# функция обработки не распознных команд
+
+# Функция обработки не распознанных команд
 def unknown(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Неверная команда!\n"
@@ -158,47 +139,29 @@ def unknown(update, context):
                                   "/start | /play | /exit | /help")
 
 
-# # обработчик команды '/start'
-# start_handler = CommandHandler('start', start)
-# dispatcher.add_handler(start_handler)
-#
-# # обработчик game
-# play_handler = CommandHandler('play', play)
-# dispatcher.add_handler(play_handler)
-
-# обработчик help
 help_handler = CommandHandler('help', help)
 dispatcher.add_handler(help_handler)
 
-# exit_func_handler = CommandHandler('exit', exit_func)
-# dispatcher.add_handler(exit_func_handler)
-
-conv_handler = ConversationHandler(  # здесь строится логика разговора
-    # точка входа в разговор
+conv_handler = ConversationHandler(
+    # Точка входа в разговор
     entry_points=[CommandHandler('start', start)],
-    # этапы разговора, каждый со своим списком обработчиков сообщений
+    # Этапы разговора, каждый со своим списком обработчиков сообщений
     states={
         PLAY: [CommandHandler('play', play), CommandHandler('exit', exit_func), CommandHandler('help', help),
                CommandHandler('start', start)],
         GAME_CYCLE: [MessageHandler(Filters.text, game_cycle1)],
-        # if candy > 0 else result
         RESULT: [MessageHandler(Filters.text, result)],
     },
-    # точка выхода из разговора
+    # Точка выхода из разговора
     fallbacks=[CommandHandler('exit', exit_func), CommandHandler('play', play)],
 )
 
 # Добавляем обработчик разговоров `conv_handler`
 dispatcher.add_handler(conv_handler)
 
-# # обработчик не распознанных команд. Должен быть обязательно в конце чтобы не перехватывать команды которые идут раньше
-# unknown_handler = MessageHandler(Filters.command, unknown)
-# dispatcher.add_handler(unknown_handler)
+# Обработчик не распознанных команд. Должен быть обязательно в конце чтобы не перехватывать команды, которые идут раньше
+unknown_handler = MessageHandler(Filters.command, unknown)
+dispatcher.add_handler(unknown_handler)
 
-# запуск прослушивания сообщений
 updater.start_polling()
-# обработчик нажатия Ctrl+C
 updater.idle()
-
-
-
