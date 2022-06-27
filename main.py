@@ -18,6 +18,8 @@ dispatcher = updater.dispatcher
 
 # функция обработки команды '/start' Стандартная функция которая шла в изначальном файле
 def start(update, _):
+    global candy
+    candy = 2021
     update.message.from_user.first_name
     # Создаем простую клавиатуру для ответа
 
@@ -74,24 +76,27 @@ def game_cycle1(update, _):
         # print(candy)
         message1 = 'Решил взять поменьше? Понимаю...'
         message2 = 'Решил взять средне? Хороший выбор...'
-        message3 = 'Решил взять по максимуму? Интересно..'
+        message3 = 'Решил взять побольше? Интересно..'
         candy -= int(update.message.text)
         take_candy = randint(1, 28)
-        update.message.reply_text(text=f'Значит {update.message.text} конфет? {message1 if candy < 15 else message3}')
+        update.message.reply_text(text=f'Значит {update.message.text} ? {message1 if candy < 15 else message3}')
         update.message.reply_text(text=f'Нажмите /ok чтобы продолжить')
         flag = 0
-        return GAME_CYCLE
+        return GAME_CYCLE if candy > 0 else RESULT
 
     def bot_start():
         global candy, flag
-        take_candy = randint(1, 28)
+        if candy > 28:
+            take_candy = randint(1, 28)
+        else:
+            take_candy = candy - 1
         candy -= take_candy
         update.message.reply_text(text=f'Я беру {take_candy} конфет. Конфет осталось {candy}')
         # update.message.reply_text(text=f'Теперь твоя очередь, напиши мне сколько конфет ты возьмешь...')
         update.message.reply_text(text=f'Выбирайте сколько возьмете конфет. Напишите число от 1 до 28')
 
         flag = 1
-        return GAME_CYCLE
+        return GAME_CYCLE if candy > 0 else RESULT
 
     if flag == 0:
         bot_start()
@@ -177,10 +182,10 @@ conv_handler = ConversationHandler(  # здесь строится логика 
                CommandHandler('start', start)],
         GAME_CYCLE: [MessageHandler(Filters.text, game_cycle1)],
         # if candy > 0 else result
-        RESULT: [MessageHandler(Filters.text & ~Filters.command, result)],
+        RESULT: [MessageHandler(Filters.text, result)],
     },
     # точка выхода из разговора
-    fallbacks=[CommandHandler('exit', exit_func)],
+    fallbacks=[CommandHandler('exit', exit_func), CommandHandler('play', play)],
 )
 
 # Добавляем обработчик разговоров `conv_handler`
@@ -194,3 +199,6 @@ dispatcher.add_handler(conv_handler)
 updater.start_polling()
 # обработчик нажатия Ctrl+C
 updater.idle()
+
+
+
